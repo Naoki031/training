@@ -1,0 +1,106 @@
+# Attendance Project
+
+## Mô tả
+Dự án này là hệ thống quản lý điểm danh gồm ba thành phần chính:
+- **API Server** (NestJS)
+- **Client** (Nuxt.js)
+- **Database** (MariaDB)
+- **Reverse Proxy** (Nginx)
+
+Tất cả các thành phần đều được quản lý và chạy bằng Docker Compose.
+
+---
+
+## Cấu trúc thư mục
+
+```
+.
+├── .docker/
+│   ├── client/
+│   ├── mariadb/
+│   ├── nginx/
+│   └── node_server/
+├── sources/
+│   ├── attendance_api/
+│   └── attendance_client/
+├── docker-compose.yml
+└── Readme
+```
+
+---
+
+## Yêu cầu
+
+- Docker Desktop (Mac/Windows/Linux)
+- Docker Compose v2
+
+---
+
+## Cài đặt & Chạy dự án
+
+1. **Clone repository:**
+    ```sh
+    git clone <repo-url>
+    cd training
+    ```
+
+2. **Tạo file `.env` cho từng service nếu chưa có:**
+    - `sources/attendance_api/.env`
+    - `sources/attendance_client/.env`
+
+3. **Khởi động Docker Desktop** (nếu chưa chạy).
+
+4. **Build và chạy toàn bộ hệ thống:**
+    ```sh
+    docker compose up -d --build
+    ```
+    Hoặc
+    ```sh
+    make up-build
+    ```
+
+5. **Truy cập:**
+    - API: http://localhost:3001
+    - Client: http://localhost
+    - Adminer/DB (nếu có): http://localhost:8080
+
+---
+
+## Một số lệnh hữu ích
+
+- **Dừng toàn bộ hệ thống:**
+    ```sh
+    docker compose down
+    ```
+    hoặc
+    ```sh
+    make down
+    ```
+
+- **Xem logs:**
+    ```sh
+    docker compose logs -f
+    ```
+
+- **Xây dựng lại image:**
+    ```sh
+    docker compose build --no-cache
+    ```
+    hoặc
+    ```sh
+    make build
+    ```
+
+---
+
+## Lưu ý
+
+- Nếu gặp lỗi port bị chiếm, hãy kiểm tra và dừng các dịch vụ đang sử dụng port đó trên máy host.
+- Đảm bảo Docker daemon luôn chạy trước khi thao tác.
+
+---
+
+## Thông tin liên hệ
+
+- Người phát triển: Nguyễn Trung Trực
+- Email: trucnguyen.dofuu@gmail.com
