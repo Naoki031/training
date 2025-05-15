@@ -40,7 +40,11 @@ Hệ thống quản lý điểm danh hiện đại, triển khai nhanh chóng v�
 git clone <repo-url>
 cd training
 
-# 2. Tạo file .env cho từng service nếu chưa có
+# 2. Clone các submodule client và api vào thư mục sources
+git clone https://github.com/Naoki031/attendance_client sources/attendance_client
+git clone https://github.com/Naoki031/attendance_api sources/attendance_api
+
+# 3. Tạo file .env cho từng service nếu chưa có
 cp sources/attendance_api/.env.example sources/attendance_api/.env
 cp sources/attendance_client/.env.example sources/attendance_client/.env
 
