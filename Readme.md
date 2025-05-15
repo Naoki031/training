@@ -1,120 +1,100 @@
 # Attendance Project 🚀
 
-[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-enabled-blue?logo=docker)](https://docs.docker.com/compose/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Docker Compose](https://img.shields.io/badge/docker--compose-enabled-blue?logo=docker)](https://docs.docker.com/compose/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A modern **attendance management system** built for rapid deployment using **Docker Compose**.  
-**Tech Stack**:  
-- **API**: NestJS  
-- **Client**: Nuxt.js  
-- **Database**: MariaDB  
-- **Reverse Proxy**: Nginx  
+Hệ thống quản lý điểm danh hiện đại, triển khai nhanh chóng với Docker Compose.  
+**Stack:** NestJS (API) · Nuxt.js (Client) · MariaDB (Database) · Nginx (Reverse Proxy)
 
 ---
 
-## 📂 Project Structure
+## 🗂️ Cấu trúc thư mục
 
 ```
-attendance-project/
-├── .docker/                     # Docker configuration files
-│   ├── client/                  # Client service configs
-│   ├── mariadb/                 # Database configs
-│   ├── nginx/                   # Nginx configs
-│   └── node_server/             # API server configs
-├── sources/                     # Source code
-│   ├── attendance_api/          # NestJS API
-│   └── attendance_client/       # Nuxt.js Client
-├── docker-compose.yml           # Docker Compose configuration
-└── README.md                    # Project documentation
+.
+├── .docker/
+│   ├── client/
+│   ├── mariadb/
+│   ├── nginx/
+│   └── node_server/
+├── sources/
+│   ├── attendance_api/
+│   └── attendance_client/
+├── docker-compose.yml
+└── Readme
 ```
 
 ---
 
-## ⚙️ System Requirements
+## ⚙️ Yêu cầu hệ thống
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (compatible with Mac, Windows, or Linux)
-- Docker Compose v2 or higher
-
----
-
-## 🚀 Quick Start
-
-Follow these steps to get the system up and running:
-
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd attendance-project
-   ```
-
-2. **Clone submodules** for the API and Client:
-   ```bash
-   git clone https://github.com/Naoki031/attendance_client sources/attendance_client
-   git clone https://github.com/Naoki031/attendance_api sources/attendance_api
-   ```
-
-3. **Set up environment files**:
-   ```bash
-   cp sources/attendance_api/.env.example sources/attendance_api/.env
-   cp sources/attendance_client/.env.example sources/attendance_client/.env
-   ```
-
-4. **Ensure Docker Desktop is running**.
-
-5. **Build and start the system**:
-   ```bash
-   docker compose up -d --build
-   ```
-   *Alternatively, if a Makefile is provided*:
-   ```bash
-   make up-build
-   ```
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac/Windows/Linux)
+- Docker Compose v2 trở lên
 
 ---
 
-## 🌐 Accessing Services
+## 🚀 Khởi động nhanh
 
-Once the system is running, access the services at:
+```sh
+# 1. Clone repository
+git clone <repo-url>
+cd training
 
-- **API**: [http://localhost:3001](http://localhost:3001)  
-- **Client**: [http://localhost:3000](http://localhost:3000)  
-- **Database Admin** (if enabled): [http://localhost:8080](http://localhost:8080)  
+# 2. Tạo file .env cho từng service nếu chưa có
+cp sources/attendance_api/.env.example sources/attendance_api/.env
+cp sources/attendance_client/.env.example sources/attendance_client/.env
 
----
+# 3. Khởi động Docker Desktop (nếu chưa chạy)
 
-## 🛠️ Useful Commands
-
-| Task                     | Command                                      |
-|--------------------------|----------------------------------------------|
-| Stop the system          | `docker compose down` or `make down`         |
-| View logs                | `docker compose logs -f`                     |
-| Rebuild images           | `docker compose build --no-cache` or `make build` |
-| Check running containers | `docker compose ps`                          |
-
----
-
-## ⚠️ Important Notes
-
-- **Port conflicts**: If ports (e.g., 3306) are occupied, stop conflicting services (like local MySQL/MariaDB) or update ports in `docker-compose.yml`.
-- **Docker Daemon**: Ensure the Docker daemon is running before executing commands.
-- **Environment variables**: Customize `.env` files to match your environment.
+# 4. Build & chạy toàn bộ hệ thống
+docker compose up -d --build
+# hoặc nếu có Makefile
+make up-build
+```
 
 ---
 
-## ❓ Frequently Asked Questions
+## 🌐 Truy cập dịch vụ
 
-**Q: Why can't I connect to the Docker daemon?**  
-**A**: Ensure Docker Desktop is running. If the issue persists, restart Docker Desktop or your computer.
-
-**Q: Port 3306 is already in use. What should I do?**  
-**A**: Either stop the local MySQL/MariaDB service or modify the port in `docker-compose.yml`.
+- **API:** [http://localhost:3001](http://localhost:3001)
+- **Client:** [http://localhost:3000](http://localhost:3000)
+- **Database Admin (nếu có):** [http://localhost:8080](http://localhost:8080)
 
 ---
 
-## 👤 Contact Information
+## 🛠️ Một số lệnh hữu ích
 
-- **Developer**: Nguyễn Trung Trực  
-- **Email**: trucnguyen.dofuu@gmail.com  
+| Chức năng                | Lệnh                                           |
+|--------------------------|------------------------------------------------|
+| Dừng toàn bộ hệ thống    | `docker compose down` hoặc `make down`         |
+| Xem logs                 | `docker compose logs -f`                       |
+| Xây dựng lại image       | `docker compose build --no-cache` hoặc `make build` |
+| Kiểm tra container       | `docker compose ps`                            |
+
+---
+
+## ⚠️ Lưu ý
+
+- Nếu gặp lỗi port bị chiếm, hãy kiểm tra và dừng các dịch vụ đang sử dụng port đó trên máy host (ví dụ: MySQL/MariaDB cài sẵn).
+- Đảm bảo Docker daemon luôn chạy trước khi thao tác.
+- Đừng quên cập nhật biến môi trường trong các file `.env` cho phù hợp với môi trường của bạn.
+
+---
+
+## ❓ FAQ
+
+**Q:** Không thể kết nối Docker daemon?  
+**A:** Hãy chắc chắn Docker Desktop đã chạy. Nếu vẫn lỗi, thử khởi động lại Docker Desktop hoặc máy tính.
+
+**Q:** Port 3306 bị chiếm?  
+**A:** Đổi sang port khác trong `docker-compose.yml` hoặc dừng dịch vụ MySQL/MariaDB trên máy host.
+
+---
+
+## 👤 Thông tin liên hệ
+
+- **Người phát triển:** Nguyễn Trung Trực  
+- **Email:** trucnguyen.dofuu@gmail.com
 
 ---
 
