@@ -1,5 +1,5 @@
 # Use the official Node.js 20 image as a base image
-FROM node:22-alpine as dependency-base
+FROM node:22-alpine AS dependency-base
 
 # Create destination directory
 ENV WORKDIR=/home/attendance_client
@@ -16,7 +16,7 @@ RUN apk --no-cache update && \
 # Install Nuxt.js CLI
 RUN npm install -g npm@10
 
-FROM dependency-base as client-development
+FROM dependency-base AS client-development
 # Set NODE_ENV environment variable to development
 ARG NODE_ENV=development
 ENV NODE_ENV=${NODE_ENV}

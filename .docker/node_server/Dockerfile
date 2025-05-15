@@ -1,4 +1,4 @@
-FROM node:22-alpine as dependency-base
+FROM node:22-alpine AS dependency-base
 
 # Create destination directory
 ENV WORKDIR=/home/api_server
@@ -12,7 +12,7 @@ RUN apk add --no-cache mysql-client bash vim git wget curl nodejs npm && \
 # Install NestJS CLI
 RUN npm install -g @nestjs/cli@10
 
-FROM dependency-base as server_development
+FROM dependency-base AS server_development
 
 # Set NODE_ENV environment variable to development
 ARG NODE_ENV=development

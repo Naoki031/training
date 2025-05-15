@@ -1,4 +1,4 @@
-FROM nginx:alpine as dependency-base
+FROM nginx:alpine AS dependency-base
 
 # Override default shell
 SHELL ["/bin/ash", "-oeux", "pipefail", "-c"]

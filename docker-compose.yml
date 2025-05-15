@@ -1,10 +1,22 @@
 services:
-  server:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./.docker/nginx/Dockerfile
+    container_name: attendance_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - client
+    networks:
+      - app-network
+      
+  api:
     build:
       context: .
       dockerfile: ./.docker/node_server/Dockerfile
       target: server_development
-    container_name: api_attendance
+    container_name: attendance_api
     command: npm run start:dev
     environment:
       - NODE_ENV=development
@@ -17,8 +29,10 @@ services:
     volumes:
       - type: bind
         source: ./sources/attendance_api
-        target: /home/api_server
-      - /home/api_server/node_modules
+        target: /home/attendance_api
+      - type: volume  # Anonymous volume to handle node_modules within the container
+        source: attendance_api_node_modules
+        target: /home/attendance_api/node_modules
     restart: unless-stopped
     env_file:
       - ./sources/attendance_api/.env
@@ -30,7 +44,7 @@ services:
       context: .
       dockerfile: ./.docker/client/Dockerfile
       target: client-development
-    container_name: client_attendance
+    container_name: attendance_client
     environment:
       HOST: 0.0.0.0
       PORT: 3000
@@ -40,22 +54,12 @@ services:
     volumes:
       - type: bind
         source: ./sources/attendance_client
-        target: /home/client
-      - /home/client/node_modules
+        target: /home/attendance_client
+      - type: volume
+        source: attendance_client_node_modules
+        target: /home/attendance_client/node_modules
     env_file:
       - ./sources/attendance_client/.env
-    networks:
-      - app-network
-
-  nginx:
-    build:
-      context: .
-      dockerfile: ./.docker/nginx/Dockerfile
-    container_name: nginx-container
-    ports:
-      - "80:80"
-    depends_on:
-      - client
     networks:
       - app-network
 
@@ -63,9 +67,9 @@ services:
     build:
       context: .
       dockerfile: ./.docker/mariadb/Dockerfile
-    container_name: mariadb_attendance
+    container_name: attendance_mariadb
     ports:
-      - '306:3306'
+      - '3306:3306'
     volumes:
       - datastore:/var/lib/mysql
     environment:
@@ -83,3 +87,5 @@ networks:
 
 volumes:
   datastore:
+  attendance_api_node_modules:
+  attendance_client_node_modules:
