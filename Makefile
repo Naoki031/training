@@ -1,13 +1,10 @@
 # ------------------------------------------------------------
-# For development
+# For API development
 # ------------------------------------------------------------
-# ------------------------------------------------------------
-# For development
-# ------------------------------------------------------------
-dockerName=attendance_api
-dataSource=src/core/database/data-source.ts
-migrationDir=src/core/database/migrations
-seedDir=src/core/database/seeds
+api_dockerName=attendance_api
+api_dataSource=src/core/database/data-source.ts
+api_migrationDir=src/core/database/migrations
+api_seedDir=src/core/database/seeds
 
 up:
 	docker compose up -d
@@ -35,55 +32,56 @@ ps:
 	docker compose ps
 
 api:
-	docker container exec -it $(dockerName) /bin/sh
+	docker container exec -it $(api_dockerName) /bin/sh
 
 api-renpm-i:
-	docker container exec -it $(dockerName) bash -c 'rm -rf node_modules package-lock.json && npm install'
+	docker container exec -it $(api_dockerName) bash -c 'rm -rf node_modules package-lock.json && npm install'
 
 api-npm-i:
-	docker container exec -it $(dockerName) npm install
+	docker container exec -it $(api_dockerName) npm install
 
 api-npm-dev:
-	docker container exec -it $(dockerName) npm run dev
+	docker container exec -it $(api_dockerName) npm run dev
 
 api-npm-build:
-	docker container exec -it $(dockerName) npm run build
+	docker container exec -it $(api_dockerName) npm run build
 
-# make typeorm-create example: make migration-create name=create_users_table
+# make migration-create name=create_users_table
 migration-create:
-	docker container exec -it $(dockerName) bash -c 'npx typeorm migration:create $(migrationDir)/$(name)'
+	docker container exec -it $(api_dockerName) bash -c 'npx typeorm migration:create $(api_migrationDir)/$(name)'
 
-# make typeorm-run example: make migrate
+# make migrate
 migrate:
-	docker container exec -it $(dockerName) bash -c 'npm run typeorm migration:run -- --dataSource ${dataSource}'
+	docker container exec -it $(api_dockerName) bash -c 'npm run typeorm migration:run -- --dataSource $(api_dataSource)'
 
-# make seed-create example: make seed-create name=seed_name.ts
+# make seed-create name=seed_name.ts
 seed-create:
-	docker container exec -it $(dockerName) bash -c 'npm run seed:create -- --name $(seedDir)/$(name)'
+	docker container exec -it $(api_dockerName) bash -c 'npm run seed:create -- --name $(api_seedDir)/$(name)'
 
-# make seed-run example: make seed
+# make seed
 seed:
-	docker container exec -it $(dockerName) bash -c 'npm run seed'
+	docker container exec -it $(api_dockerName) bash -c 'npm run seed'
 
-# make resource-create: example: make resource-create name=modules/users
+# make create-resource name=modules/users
 create-resource:
-	docker container exec -it $(dockerName) bash -c 'nest g resource $(name)'
+	docker container exec -it $(api_dockerName) bash -c 'nest g resource $(name)'
 
 # ------------------------------------------------------------
-# For development
+# For Client development
 # ------------------------------------------------------------
-dockerName=attendance_client
-dataSource=src/core/database/data-source.ts
-migrationDir=src/core/database/migrations
-seedDir=src/core/database/seeds
+client_dockerName=attendance_client
 
 client:
-	docker container exec -it ${dockerName} /bin/sh
+	docker container exec -it $(client_dockerName) /bin/sh
+
 client-renpm-i:
-	docker container exec -it ${dockerName} rm -rf node_modules package-lock.json && npm install
+	docker container exec -it $(client_dockerName) bash -c 'rm -rf node_modules package-lock.json && npm install'
+
 client-i:
-	docker container exec -it ${dockerName} npm install
+	docker container exec -it $(client_dockerName) npm install
+
 client-dev:
-	docker container exec -it ${dockerName} npm run dev
+	docker container exec -it $(client_dockerName) npm run dev
+
 client-build:
-	docker container exec -it ${dockerName} npm run build
+	docker container exec -it $(client_dockerName) npm run build
