@@ -1,7 +1,7 @@
 FROM node:22-alpine AS dependency-base
 
 # Create destination directory
-ENV WORKDIR=/home/api_server
+ENV WORKDIR=/home/attendance_api
 WORKDIR $WORKDIR
 
 # Install system dependencies

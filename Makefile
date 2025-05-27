@@ -7,10 +7,10 @@ api_migrationDir=src/core/database/migrations
 api_seedDir=src/core/database/seeds
 
 up:
-	docker compose up -d
+	COMPOSE_BAKE=true docker compose up -d
 
 up-build:
-	docker compose up -d --build
+	COMPOSE_BAKE=true docker compose up -d --build
 
 build:
 	docker compose build --no-cache --force-rm
@@ -61,6 +61,10 @@ seed-create:
 # make seed
 seed:
 	docker container exec -it $(api_dockerName) bash -c 'npm run seed'
+
+# make seed-one file=permission_group.seeder.ts
+seed-one:
+	docker container exec -it $(api_dockerName) bash -c 'npm run seed:run -- --name src/core/database/seeds/$(file) --dataSource src/core/database/data-source.ts'
 
 # make create-resource name=modules/users
 create-resource:

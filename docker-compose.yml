@@ -27,9 +27,7 @@ services:
     depends_on:
       - mariadb
     volumes:
-      - type: bind
-        source: ./sources/attendance_api
-        target: /home/attendance_api
+      - ./sources/attendance_api:/home/attendance_api
       - type: volume  # Anonymous volume to handle node_modules within the container
         source: attendance_api_node_modules
         target: /home/attendance_api/node_modules
@@ -52,9 +50,7 @@ services:
       - "3000:3000"
       - "24678:24678"
     volumes:
-      - type: bind
-        source: ./sources/attendance_client
-        target: /home/attendance_client
+      - ./sources/attendance_client:/home/attendance_client
       - type: volume
         source: attendance_client_node_modules
         target: /home/attendance_client/node_modules
@@ -69,7 +65,7 @@ services:
       dockerfile: ./.docker/mariadb/Dockerfile
     container_name: attendance_mariadb
     ports:
-      - '3306:3306'
+      - '306:3306'
     volumes:
       - datastore:/var/lib/mysql
     environment:
