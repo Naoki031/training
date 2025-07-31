@@ -54,6 +54,10 @@ migration-create:
 migrate:
 	docker container exec -it $(api_dockerName) bash -c 'npm run typeorm migration:run -- --dataSource $(api_dataSource)'
 
+# make migration-revert
+migration-revert:
+	docker container exec -it $(api_dockerName) bash -c 'npm run typeorm migration:revert -- --dataSource $(api_dataSource)'
+
 # make seed-create name=seed_name.ts
 seed-create:
 	docker container exec -it $(api_dockerName) bash -c 'npm run seed:create -- --name $(api_seedDir)/$(name)'
