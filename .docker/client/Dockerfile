@@ -1,59 +1,46 @@
-# Use the official Node.js 20 image as a base image
-FROM node:22-alpine AS dependency-base
+# =============================================
+# Stage: base — shared tooling
+# =============================================
+FROM node:24-alpine AS base
 
-# Create destination directory
 ENV WORKDIR=/home/attendance_client
-RUN mkdir -p $WORKDIR
 WORKDIR $WORKDIR
 
-# Install system dependencies
-RUN apk --no-cache update && \
-    apk --no-cache upgrade && \
-    apk add --no-cache openssh g++ make python3 bash vim git wget curl nodejs npm && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /var/lib/apt/lists/* /tmp/*
+# System dependencies needed for native addons (node-gyp etc.)
+RUN apk add --no-cache bash git curl python3 make g++ && \
+    rm -rf /var/cache/apk/*
 
-# Install Nuxt.js CLI
-RUN npm install -g npm@10
+# Update npm to latest
+RUN npm install -g npm@latest
 
-FROM dependency-base AS client-development
-# Set NODE_ENV environment variable to development
-ARG NODE_ENV=development
-ENV NODE_ENV=${NODE_ENV}
+# =============================================
+# Stage: deps — install dependencies
+# =============================================
+FROM base AS deps
 
-# Copy over package.json and package-lock.json files
-COPY ./sources/attendance_client/package*.json $WORKDIR/
+# Copy only package.json (not lock file) — lock file may be stale after version upgrades
+COPY ./sources/attendance_client/package.json ./
 
-# Retry mechanism for npm install
-RUN set -ex; \
-    for i in $(seq 1 5); do \
-        npm install && break || sleep 15; \
-    done; \
-    npm cache clean --force
+RUN npm install && npm cache clean --force
 
-# Service hostname
+# =============================================
+# Stage: development
+# =============================================
+FROM base AS client-development
+
+ENV NODE_ENV=development
 ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
 
-# Copy the rest of the application code
-COPY ./sources/attendance_client/ $WORKDIR/
+# Copy installed node_modules from deps stage into image
+# (docker-compose will overlay with a named volume on first run)
+COPY --from=deps $WORKDIR/node_modules ./node_modules
 
-# Adjust permissions for Nuxt.js directory
-RUN chmod -R 755 $WORKDIR
+# Copy entrypoint
+COPY .docker/client/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Use non-root user for better security
-ARG UID=1041
-ARG GID=1001
-RUN addgroup -g ${GID} client && \
-    adduser -D -G client -u ${UID} client
+EXPOSE 3000 24678
 
-# Change ownership of the working directory
-RUN chown -R client:client $WORKDIR
-
-# Switch to the non-root user
-USER client
-
-# Expose port 3000 (Nuxt default port)
-EXPOSE 3000
-
-# Command to start the application
-CMD ["sh", "-c", "npm install && npm run dev"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["npm", "run", "dev"]

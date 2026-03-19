@@ -7,10 +7,14 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - client
+      client:
+        condition: service_started
+      api:
+        condition: service_started
     networks:
       - app-network
-      
+    restart: unless-stopped
+
   api:
     build:
       context: .
@@ -19,18 +23,17 @@ services:
     container_name: attendance_api
     command: npm run start:dev
     environment:
-      - NODE_ENV=development
-      - PORT=3001
+      NODE_ENV: development
+      PORT: 3001
     ports:
-      - '3001:3001'
-      - '9229:9229'
+      - "3001:3001"
+      - "9229:9229"
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     volumes:
       - ./sources/attendance_api:/home/attendance_api
-      - type: volume  # Anonymous volume to handle node_modules within the container
-        source: attendance_api_node_modules
-        target: /home/attendance_api/node_modules
+      - attendance_api_node_modules:/home/attendance_api/node_modules
     restart: unless-stopped
     env_file:
       - ./sources/attendance_api/.env
@@ -46,18 +49,23 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 3000
+      NUXT_HOST: 0.0.0.0
+      NUXT_PORT: 3000
     ports:
       - "3000:3000"
       - "24678:24678"
+    depends_on:
+      api:
+        condition: service_started
     volumes:
       - ./sources/attendance_client:/home/attendance_client
-      - type: volume
-        source: attendance_client_node_modules
-        target: /home/attendance_client/node_modules
+      - attendance_client_node_modules:/home/attendance_client/node_modules
+      - attendance_client_nuxt:/home/attendance_client/.nuxt
     env_file:
       - ./sources/attendance_client/.env
     networks:
       - app-network
+    restart: unless-stopped
 
   mariadb:
     build:
@@ -65,17 +73,22 @@ services:
       dockerfile: ./.docker/mariadb/Dockerfile
     container_name: attendance_mariadb
     ports:
-      - '306:3306'
+      - "3306:3306"
     volumes:
       - datastore:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: attendance
-      MYSQL_USER: root
-      MYSQL_PASSWORD: password
-      TZ: 'Asia/Ho_Chi_Minh'
+      TZ: Asia/Ho_Chi_Minh
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - app-network
+    restart: unless-stopped
 
 networks:
   app-network:
@@ -85,3 +98,4 @@ volumes:
   datastore:
   attendance_api_node_modules:
   attendance_client_node_modules:
+  attendance_client_nuxt:

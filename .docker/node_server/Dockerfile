@@ -1,37 +1,40 @@
-FROM node:22-alpine AS dependency-base
+# =============================================
+# Stage: base — shared tooling
+# =============================================
+FROM node:24-alpine AS base
 
-# Create destination directory
 ENV WORKDIR=/home/attendance_api
 WORKDIR $WORKDIR
 
-# Install system dependencies
-RUN apk add --no-cache mysql-client bash vim git wget curl nodejs npm && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /var/lib/apt/lists/* /tmp/*
+RUN apk add --no-cache bash git curl mysql-client && \
+    rm -rf /var/cache/apk/*
 
-# Install NestJS CLI
-RUN npm install -g @nestjs/cli@10
+RUN npm install -g npm@latest @nestjs/cli@latest
 
-FROM dependency-base AS server_development
+# =============================================
+# Stage: deps — install dependencies
+# =============================================
+FROM base AS deps
 
-# Set NODE_ENV environment variable to development
-ARG NODE_ENV=development
-ENV NODE_ENV=${NODE_ENV}
+COPY ./sources/attendance_api/package.json ./
 
-# Copy over package.json and package-lock.json files
-COPY ./sources/attendance_api/package*.json $WORKDIR/
+RUN npm install && npm cache clean --force
 
-# Cài đặt các phụ thuộc Node.js
-RUN npm install
+# =============================================
+# Stage: development
+# =============================================
+FROM base AS server_development
 
-# Sao chép mã nguồn vào container
-COPY ./sources/attendance_api/ $WORKDIR/
+ENV NODE_ENV=development
 
-# Điều chỉnh quyền
-RUN chmod -R 755 $WORKDIR
+# Copy installed node_modules from deps stage into image
+COPY --from=deps $WORKDIR/node_modules ./node_modules
 
-# Mở cổng 3001
-EXPOSE 3001
+# Copy entrypoint
+COPY .docker/node_server/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Lệnh chạy ứng dụng
+EXPOSE 3001 9229
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]
