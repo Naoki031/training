@@ -44,3 +44,20 @@ EXPOSE 3000 24678
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "dev"]
+
+# =============================================
+# Stage: staging
+# =============================================
+FROM base AS client-staging
+
+ENV NODE_ENV=production
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
+
+COPY --from=deps $WORKDIR/node_modules ./node_modules
+COPY ./sources/attendance_client ./
+
+RUN npm run build
+
+EXPOSE 3000
+CMD ["node", ".output/server/index.mjs"]

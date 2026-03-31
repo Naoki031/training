@@ -1,1 +1,2 @@
-./sources/*
+.env.staging.docker
+sources/attendance_api/secrets/

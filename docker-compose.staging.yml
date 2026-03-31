@@ -1,0 +1,50 @@
+networks:
+  default:
+    external:
+      name: shared
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: ./.docker/nginx/Dockerfile
+      target: staging
+    container_name: attendance
+    restart: always
+    depends_on:
+      - client
+      - api
+
+  api:
+    build:
+      context: .
+      dockerfile: ./.docker/node_server/Dockerfile
+      target: server_staging
+    container_name: attendance_api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+    env_file: .env.staging.docker
+    volumes:
+      - type: bind
+        source: ./uploads
+        target: /home/attendance_api/uploads
+      - type: bind
+        source: ./secrets
+        target: /home/attendance_api/secrets
+    restart: always
+
+  client:
+    build:
+      context: .
+      dockerfile: ./.docker/client/Dockerfile
+      target: client-staging
+    container_name: attendance_client
+    environment:
+      NODE_ENV: production
+      NUXT_HOST: 0.0.0.0
+      NUXT_PORT: 3000
+    env_file: .env.staging.docker
+    depends_on:
+      - api
+    restart: always

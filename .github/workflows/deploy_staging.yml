@@ -1,0 +1,45 @@
+name: DeployStaging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Staging
+        uses: appleboy/ssh-action@master
+        with:
+          key: ${{ secrets.PRIVATE_KEY }}
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          port: ${{ secrets.STAGING_PORT }}
+          script: |
+            cd /home/public_html/attendance
+            git config --global --add safe.directory /home/public_html/attendance
+            git pull origin staging
+            mkdir -p uploads secrets
+            make stg-up-build
+            docker image prune -f
+
+  notifyFailure:
+    if: failure()
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Notify Slack on failure
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": ":x: *DeployStaging failed*\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.event.head_commit.message }}\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

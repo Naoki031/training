@@ -8,7 +8,9 @@
 	create-resource \
 	client client-shell client-npm-i client-renpm-i client-build client-lint client-lint-fix client-format \
 	db db-shell db-dump db-restore \
-	prune
+	prune \
+	stg-up stg-up-build stg-build stg-down stg-restart stg-logs stg-ps \
+	stg-api stg-client stg-nginx-reload stg-migrate stg-seed
 
 # ============================================================
 # Variables
@@ -106,58 +108,58 @@ api: ## Open shell in API container
 api-shell: api ## Alias for `api`
 
 api-npm-i: ## Install API dependencies
-	docker container exec -it $(api_dockerName) npm install
+	docker container exec -i $(api_dockerName) npm install
 
 api-renpm-i: ## Clean install API dependencies (remove node_modules first)
-	docker container exec -it $(api_dockerName) sh -c 'rm -rf node_modules package-lock.json && npm install'
+	docker container exec -i $(api_dockerName) sh -c 'rm -rf node_modules package-lock.json && npm install'
 
 api-build: ## Build API (NestJS compile)
-	docker container exec -it $(api_dockerName) npm run build
+	docker container exec -i $(api_dockerName) npm run build
 
 api-lint: ## Run ESLint on API (check only)
-	docker container exec -it $(api_dockerName) npm run lint
+	docker container exec -i $(api_dockerName) npm run lint
 
 api-lint-fix: ## Run ESLint on API and auto-fix
-	docker container exec -it $(api_dockerName) npm run lint:fix
+	docker container exec -i $(api_dockerName) npm run lint:fix
 
 api-format: ## Run Prettier on API
-	docker container exec -it $(api_dockerName) npm run format
+	docker container exec -i $(api_dockerName) npm run format
 
 api-test: ## Run API unit tests
-	docker container exec -it $(api_dockerName) npm run test
+	docker container exec -i $(api_dockerName) npm run test
 
 api-test-cov: ## Run API tests with coverage
-	docker container exec -it $(api_dockerName) npm run test:cov
+	docker container exec -i $(api_dockerName) npm run test:cov
 
 # make migration-create name=create_users_table
 migration-create: ## Create a new migration file  [name=<migration_name>]
-	docker container exec -it $(api_dockerName) \
+	docker container exec -i $(api_dockerName) \
 		sh -c 'npx typeorm migration:create $(api_migrationDir)/$(name)'
 
 migrate: ## Run all pending migrations
-	docker container exec -it $(api_dockerName) \
+	docker container exec -i $(api_dockerName) \
 		sh -c 'npm run typeorm migration:run -- --dataSource $(api_dataSource)'
 
 migration-revert: ## Revert the last executed migration
-	docker container exec -it $(api_dockerName) \
+	docker container exec -i $(api_dockerName) \
 		sh -c 'npm run typeorm migration:revert -- --dataSource $(api_dataSource)'
 
 # make seed-create name=user_seeder.ts
 seed-create: ## Create a new seeder file  [name=<seeder_name>.ts]
-	docker container exec -it $(api_dockerName) \
+	docker container exec -i $(api_dockerName) \
 		sh -c 'npm run seed:create -- --name $(api_seedDir)/$(name)'
 
 seed: ## Run all seeders
-	docker container exec -it $(api_dockerName) npm run seed:run
+	docker container exec -i $(api_dockerName) sh -c 'npm run seed'
 
 # make seed-one file=permission_group.seeder.ts
 seed-one: ## Run a single seeder  [file=<seeder_file>.ts]
-	docker container exec -it $(api_dockerName) \
+	docker container exec -i $(api_dockerName) \
 		sh -c 'npm run seed:run -- --name $(api_seedDir)/$(file) --dataSource $(api_dataSource)'
 
 # make create-resource name=modules/users
 create-resource: ## Scaffold a NestJS resource  [name=<path/name>]
-	docker container exec -it $(api_dockerName) sh -c 'nest g resource $(name)'
+	docker container exec -i $(api_dockerName) sh -c 'nest g resource $(name)'
 
 # ============================================================
 # --- Client
@@ -169,25 +171,25 @@ client: ## Open shell in Client container
 client-shell: client ## Alias for `client`
 
 client-npm-i: ## Install Client dependencies
-	docker container exec -it $(client_dockerName) npm install
+	docker container exec -i $(client_dockerName) npm install
 
 client-renpm-i: ## Clean install Client dependencies (remove node_modules first)
-	docker container exec -it $(client_dockerName) sh -c 'rm -rf node_modules package-lock.json && npm install'
+	docker container exec -i $(client_dockerName) sh -c 'rm -rf node_modules package-lock.json && npm install'
 
 client-build: ## Build Client (Nuxt production build)
-	docker container exec -it $(client_dockerName) npm run build
+	docker container exec -i $(client_dockerName) npm run build
 
 client-lint: ## Run ESLint on Client (check only)
-	docker container exec -it $(client_dockerName) npm run lint
+	docker container exec -i $(client_dockerName) npm run lint
 
 client-lint-fix: ## Run ESLint on Client and auto-fix
-	docker container exec -it $(client_dockerName) npm run lint:fix
+	docker container exec -i $(client_dockerName) npm run lint:fix
 
 client-format: ## Run Prettier on Client
-	docker container exec -it $(client_dockerName) npm run format
+	docker container exec -i $(client_dockerName) npm run format
 
 client-prepare: ## Run nuxt prepare (regenerate .nuxt/)
-	docker container exec -it $(client_dockerName) npm run postinstall
+	docker container exec -i $(client_dockerName) npm run postinstall
 
 # ============================================================
 # --- Database
@@ -211,3 +213,46 @@ db-restore: ## Restore database from file  [db_dump_file=dump.sql]
 	docker container exec -i $(db_dockerName) \
 		mariadb -u$(db_user) -p$(db_password) $(db_name) < $(db_dump_file)
 	@echo "Restored from $(db_dump_file)"
+
+# ============================================================
+# --- Staging
+# ============================================================
+
+stg-up: ## [Staging] Start all containers
+	docker compose -f docker-compose.staging.yml up -d
+
+stg-up-build: ## [Staging] Start all containers, rebuild images first
+	docker compose -f docker-compose.staging.yml up -d --build
+
+stg-build: ## [Staging] Build all images (no cache)
+	docker compose -f docker-compose.staging.yml build --no-cache --force-rm
+
+stg-down: ## [Staging] Stop and remove containers
+	docker compose -f docker-compose.staging.yml down --remove-orphans
+
+stg-restart: ## [Staging] Restart all containers
+	@$(MAKE) stg-down
+	@$(MAKE) stg-up
+
+stg-logs: ## [Staging] Tail logs of all containers
+	docker compose -f docker-compose.staging.yml logs -f
+
+stg-ps: ## [Staging] List running containers
+	docker compose -f docker-compose.staging.yml ps
+
+stg-api: ## [Staging] Open shell in API container
+	docker container exec -it attendance_api /bin/sh
+
+stg-client: ## [Staging] Open shell in Client container
+	docker container exec -it attendance_client /bin/sh
+
+stg-nginx-reload: ## [Staging] Reload nginx config without restart
+	docker container exec attendance nginx -s reload
+
+stg-migrate: ## [Staging] Run pending migrations
+	docker container exec attendance_api \
+		sh -c 'node ./node_modules/typeorm/cli.js migration:run -d dist/core/database/data-source.js'
+
+stg-seed: ## [Staging] Run all seeders
+	docker container exec attendance_api \
+		sh -c 'node ./node_modules/typeorm-extension/bin/cli.cjs seed:run -d dist/core/database/data-source.js'

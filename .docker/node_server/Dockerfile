@@ -38,3 +38,18 @@ EXPOSE 3001 9229
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "start:dev"]
+
+# =============================================
+# Stage: staging
+# =============================================
+FROM base AS server_staging
+
+ENV NODE_ENV=production
+
+COPY --from=deps $WORKDIR/node_modules ./node_modules
+COPY ./sources/attendance_api ./
+
+RUN npm run build
+
+EXPOSE 3001
+CMD ["node", "dist/main"]

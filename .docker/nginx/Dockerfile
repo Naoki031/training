@@ -23,3 +23,16 @@ WORKDIR /home/client
 CMD ["nginx", "-g", "daemon off;"]
 
 EXPOSE 80
+
+#=========================================
+# Multi stage build - staging stage
+#=========================================
+FROM dependency-base AS staging
+
+COPY ./.docker/nginx/staging.conf /etc/nginx/conf.d/default.conf
+
+WORKDIR /home
+
+CMD ["nginx", "-g", "daemon off;"]
+
+EXPOSE 10080
