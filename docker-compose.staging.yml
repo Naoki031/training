@@ -87,9 +87,4 @@ services:
       context: ./services/whisper
     container_name: attendance_whisper
     env_file: .env.staging.docker
-    volumes:
-      - whisper_cache:/root/.cache/whisper
     restart: always
-
-volumes:
-  whisper_cache:

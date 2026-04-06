@@ -136,8 +136,6 @@ services:
       - "5001:5001"
     env_file:
       - .env
-    volumes:
-      - whisper_cache:/root/.cache/whisper
     networks:
       - app-network
     restart: unless-stopped

@@ -53,7 +53,7 @@ def transcribe():
         wav_path = convert_to_wav(webm_path)
 
         kwargs = dict(
-            beam_size=5,
+            beam_size=2,
             language=language_hint,      # None = auto-detect
             vad_filter=True,
             vad_parameters={
@@ -66,19 +66,20 @@ def transcribe():
 
             # Anti-hallucination: reject low-confidence segments
             # no_speech_threshold: if P(no speech) > this → return empty (default 0.6)
-            # medium model is more accurate, 0.6 is sufficient
-            no_speech_threshold=0.6,
+            # large-v3-turbo has higher confidence, 0.5 filters hallucinated silence more aggressively
+            no_speech_threshold=0.5,
             # log_prob_threshold: avg log-prob below this → treat as failed transcription (default -1.0)
-            # medium model produces better log-probs, -0.8 balances safety vs recall
-            log_prob_threshold=-0.8,
+            # large-v3-turbo produces strong log-probs; -0.6 is stricter but safe for this model
+            log_prob_threshold=-0.6,
             # compression_ratio_threshold: zlib ratio above this → likely repetitive hallucination
-            # default is 2.4; 2.0 catches loops while allowing normal repeated words
-            compression_ratio_threshold=2.0,
+            # default is 2.4; 1.8 is strict — catches loops early while allowing normal repeated words
+            compression_ratio_threshold=1.8,
         )
 
         if is_screen_audio:
             kwargs['condition_on_previous_text'] = True
-            kwargs['initial_prompt'] = 'This is a video or presentation with clear narration.'
+            # No initial_prompt: an English prompt biases detection toward English even when
+            # the video narration is Vietnamese or Japanese. Let Whisper auto-detect freely.
             # Screen audio from videos is higher quality — can relax no_speech_threshold slightly
             kwargs['no_speech_threshold'] = 0.6
 

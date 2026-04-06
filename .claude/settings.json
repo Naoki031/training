@@ -1,0 +1,59 @@
+{
+  "permissions": {
+    "allow": [],
+    "additionalDirectories": [
+      "/Users/trucnguyen/Documents/projects/training/.claude",
+      "/Users/trucnguyen/Documents/projects/training/.claude/commands",
+      "/Users/trucnguyen/Documents/projects/training/.claude/skills",
+      "/Users/trucnguyen/Documents/projects/training/sources/attendance_client/components/employee_requests"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/trucnguyen/Documents/projects/training/.claude/hooks/session-start.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/trucnguyen/Documents/projects/training/.claude/hooks/clear-lint-cache.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/trucnguyen/Documents/projects/training/.claude/hooks/mark-linted.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/trucnguyen/Documents/projects/training/.claude/hooks/stop-verify.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
