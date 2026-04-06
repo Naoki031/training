@@ -32,6 +32,9 @@ services:
       - type: bind
         source: ./secrets
         target: /home/attendance_api/secrets
+      - type: bind
+        source: ./private-uploads
+        target: /home/attendance_api/private-uploads
     restart: always
 
   client:
@@ -44,7 +47,49 @@ services:
       NODE_ENV: production
       NUXT_HOST: 0.0.0.0
       NUXT_PORT: 3000
+      PORT: 3000
     env_file: .env.staging.docker
     depends_on:
       - api
+    volumes:
+      - ./sources/attendance_client/public/firebase-messaging-sw.js:/home/attendance_client/.output/public/firebase-messaging-sw.js
     restart: always
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: attendance_livekit
+    entrypoint: ["sh", "/etc/livekit/entrypoint.sh"]
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-50200:50000-50200/udp"
+    env_file: .env.staging.docker
+    volumes:
+      - ./.docker/livekit/livekit.yaml:/etc/livekit/livekit.yaml:ro
+      - ./.docker/livekit/entrypoint.sh:/etc/livekit/entrypoint.sh:ro
+    restart: always
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: attendance_coturn
+    entrypoint: ["/bin/sh", "/etc/coturn/entrypoint.sh"]
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "49152-49200:49152-49200/udp"
+    env_file: .env.staging.docker
+    volumes:
+      - ./.docker/coturn/entrypoint.sh:/etc/coturn/entrypoint.sh:ro
+    restart: always
+
+  whisper:
+    build:
+      context: ./services/whisper
+    container_name: attendance_whisper
+    env_file: .env.staging.docker
+    volumes:
+      - whisper_cache:/root/.cache/whisper
+    restart: always
+
+volumes:
+  whisper_cache:

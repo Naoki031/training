@@ -10,7 +10,8 @@
 	db db-shell db-dump db-restore \
 	prune \
 	stg-up stg-up-build stg-build stg-down stg-restart stg-logs stg-ps \
-	stg-api stg-client stg-nginx-reload stg-migrate stg-seed
+	stg-api stg-client stg-nginx-reload stg-migrate stg-seed \
+	ngrok-up ngrok-url ngrok-down
 
 # ============================================================
 # Variables
@@ -256,3 +257,30 @@ stg-migrate: ## [Staging] Run pending migrations
 stg-seed: ## [Staging] Run all seeders
 	docker container exec attendance_api \
 		sh -c 'node ./node_modules/typeorm-extension/bin/cli.cjs seed:run -d dist/core/database/data-source.js'
+
+migrate-refresh: ## Drop all tables, re-run migrations, then seed (development only)
+	@echo "Dropping all tables..."
+	docker container exec -i $(api_dockerName) \
+		sh -c 'npm run typeorm schema:drop -- --dataSource $(api_dataSource)'
+	@echo "Running migrations..."
+	@$(MAKE) migrate
+	@echo "Seeding data..."
+	@$(MAKE) seed
+	@echo "Done! Database reset complete."
+
+# ============================================================
+# --- Ngrok (HTTPS tunnel for mobile testing)
+# ============================================================
+
+ngrok-up: ## Start ngrok tunnel (requires NGROK_AUTHTOKEN in .env)
+	docker compose --profile ngrok up -d ngrok
+	@echo "Ngrok starting... run 'make ngrok-url' in a few seconds"
+
+ngrok-url: ## Show current public HTTPS tunnel URL
+	@curl -s http://localhost:4040/api/tunnels 2>/dev/null \
+		| python3 -c "import sys,json; tunnels=json.load(sys.stdin).get('tunnels',[]); print(tunnels[0]['public_url'] if tunnels else 'Ngrok not ready yet, try again')" \
+		2>/dev/null || echo "Ngrok not running. Run 'make ngrok-up' first."
+
+ngrok-down: ## Stop ngrok tunnel
+	docker compose --profile ngrok stop ngrok
+	docker compose --profile ngrok rm -f ngrok

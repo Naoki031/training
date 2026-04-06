@@ -1,0 +1,33 @@
+port: 7880
+bind_addresses:
+  - ""
+
+rtc:
+  tcp_port: 7881
+  port_range_start: 50000
+  port_range_end: 50200
+  # LIVEKIT_NODE_IP (set in .env) = LAN IP of the Docker host (e.g. 192.168.1.x).
+  # Leave empty to fall back to use_external_ip (queries ipify.org for public IP).
+  # LAN IP is required when all participants are on the same WiFi — avoids ISP hairpin NAT.
+  use_external_ip: true
+  interfaces:
+    includes:
+      - eth0
+
+  # TURN relay — injected at container start via sed in docker-compose entrypoint.
+  # LIVEKIT_TURN_HOST must be set in .env to the server's LAN IP (for same-network testing)
+  # or public IP / domain (for internet-accessible deployments).
+  # Without TURN, clients behind strict NAT (different networks) cannot connect.
+  turn_servers:
+    - host: "PLACEHOLDER_TURN_HOST"
+      port: 3478
+      protocol: "tcp"
+      username: "PLACEHOLDER_TURN_USERNAME"
+      credential: "PLACEHOLDER_TURN_PASSWORD"
+
+# Room defaults
+room:
+  empty_timeout: 300
+
+logging:
+  level: info
